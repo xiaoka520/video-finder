@@ -2,6 +2,8 @@
 
 > 一个 OpenClaw Agent skill — 搜点学习资料看看。
 
+ClawHub：[@xiaoka520/video-finder](https://clawhub.ai/xiaoka520/skills/video-finder)
+
 ## 功能概览
 
 | 模块 | 说明 |
@@ -18,7 +20,7 @@
 ### 1. 安装
 
 ```bash
-cp -r video-finder ~/.openclaw/skills/video-finder
+openclaw skills install @xiaoka520/video-finder
 ```
 
 ### 2. 第一次用
