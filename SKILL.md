@@ -371,14 +371,41 @@ cron action=add
 
 **进度汇报给{{{user}}}**：
 
-只在下述时机主动告知：
-- 下载完成 ✅ → 走 Phase 4
-- 下载失败 ❌ → 告知原因
-- **文件 > 2GB 且已下载超过 5 分钟** → 简单汇报一次：
+在一次性 cron 进度检测的基础上，额外设置一个 **定期兜底 cron** 来确保稳定汇报：
+
+**一次性动态 cron（主检测链）**：
+- 每次检测后根据剩余时间动态设定下次检查间隔（10秒～2分钟）
+- 检测到完成/失败 → 走 Phase 4，取消兜底 cron
+
+**定期兜底 cron（保底汇报）**：
+```
+cron action=add
+  name = "video-finder-progress-{文件标识}"
+  schedule.kind = "every"
+  schedule.everyMs = 120000    # 固定 2 分钟
+  payload.kind = "systemEvent"
+  payload.text = "video-finder download progress check"
+  sessionTarget = "main"
+```
+- 兜底 cron 每 2 分钟触发一次，读取 `downloads.json` 检查所有活跃下载
+- 如果有下载：读取日志文件 → 解析进度 → **向{{{user}}}汇报当前进度**  
   ```
-  {{{user}}}，正在下载中～目前 XX%，速度 XX MiB/s，预计还剩 X 分钟
+  {{{user}}}，正在下载中～
+  1️⃣ 当前进度：45.3%，速度 12.5 MiB/s，预计还剩 2 分半
+  2️⃣ 文件大小：~450 MB
   ```
-- 其他情况安静检测，不打扰
+- 如果全部下载已完成/已消失 → **自动移除该兜底 cron**：`cron action=remove name="video-finder-progress-{文件标识}"`
+- 兜底和一次性动态 cron 同时工作，互不冲突
+
+**触发时机总结**：
+
+| 触发者 | 时机 | 汇报内容 |
+|-------|------|---------|
+| 一次性动态cron | 每次检测到进度更新 | 安静，不向{{{user}}}汇报 |
+| 一次性动态cron | 下载完成 ✅ | 文件名、路径、大小 |
+| 一次性动态cron | 下载失败 ❌ | 失败原因 |
+| 兜底 cron（每2分钟） | 有下载活跃时 | 当前进度、速度、预估剩余时间 |
+| 兜底 cron | 全部下载完成 | 自动移除自身 |
 
 **方式 B 回退（无文件日志时）**：
 
