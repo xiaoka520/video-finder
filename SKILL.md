@@ -363,8 +363,9 @@ cron action=add
      | 进程已死，日志无 100% | ❌ 下载失败 → 告知{{{user}}}原因 |
 
 8. **清理**：下载完成后
-   - 从 `downloads.json` 的 active 列表移除
-   - 保留日志文件不改（可删可不删）
+   - 从 `downloads.json` 的 active 列表移除该记录
+   - **删除临时 log 文件**：`exec(command="rm -f /tmp/ytdlp-{对应文件名}.log")`
+   - 也清理临时 .part / .ytdl 碎片文件：`exec(command="rm -f {目录}/*.part {目录}/*.part-Frag* {目录}/*.ytdl 2>/dev/null")`
 
 **进度汇报给{{{user}}}**：
 
