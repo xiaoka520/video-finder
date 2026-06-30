@@ -217,12 +217,14 @@ curl -x "http://Clash:***@192.168.120.29:7890" \
 2.1 探测目标站点可达性（Phase 0）
 
 2.2 搜索
-    - 用 `web_search` 或 `web_fetch` 直接搜索
-    - 按需切换搜索引擎（中文 Bing CN，英文可用 Google/Brave/DuckDuckGo 等）
+    - 通过多搜索引擎技能（multi-search-engine）用 `web_fetch` 调用搜索引擎
+    - 中文不限定Bing CN，英文不限定Google/Brave等
+      → 始终先尝试 `multi-search-engine` 可用的引擎，按需选择搜索引擎
     - 查询句式：
       site:xvideos.com amateur 1080p [关键词]
       site:xvideos.com "natural tits" 2025
     - 每次间隔 1-2 秒
+    - 如果搜索受限（被过滤/结果不相关），切换不同引擎
 
 2.3 获取页面内容
     web_fetch 直连 → 能取到就直接提取
