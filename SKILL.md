@@ -263,8 +263,18 @@ curl -x "http://Clash:***@192.168.120.29:7890" \
 
 #### 3.3 启动下载 + 定时进度检测
 
-**启动下载**：用 `process` 后台启动下载，获取 sessionId：
+> **关键约束**：`process` 工具输出的 session 只在当前对话 session 有效，跨 session（cron 触发时）无法直接通过 `process(action=poll/log, sessionId=...)` 获取。因此改用 **文件跟踪法**。
 
+**启动下载**（两种方式选一）：
+
+**方式 A（推荐——文件跟踪法，支持跨 session 进度检测）**：
+```bash
+# 直接 exec 后台运行，把输出写文件
+exec command="cd {所选目录} && yt-dlp \"...\" > /tmp/ytdlp-{文件唯一标识}.log 2>&1"
+# 注意：这里的 exec 会阻塞，所以要用 background=true 或 yieldMs=5000 来放后台
+```
+
+**方式 B（旧方法——`process` 工具后台）**：
 ```bash
 yt-dlp [--proxy http://Clash:***@192.168.120.29:7890] \
        -f "bestvideo[height<=?1080]+bestaudio/best[height<=?1080]" \
@@ -274,20 +284,42 @@ yt-dlp [--proxy http://Clash:***@192.168.120.29:7890] \
        --downloader-args "aria2c:-x 16 -s 16 -k 1M" \
        "<url>"
 ```
-
 > `--newline` 让 yt-dlp 每行一条进度，方便解析  
-> `--downloader aria2c -x 16 -s 16 -k 1M` 用 aria2c 分 16 线程下载，充分利用带宽
+> `--downloader aria2c -x 16 -s 16 -k 1M` 用 aria2c 分 16 线程下载
 
-> `--newline` 让 yt-dlp 每行一条进度，方便解析
+---
 
-**进度检测逻辑**：
+**进度检测逻辑（方式 A 文件跟踪法）**：
 
-1. **首次检查**：启动后等 **10 秒**，用 `process(action=poll)` 看输出
+1. **启动后立即**：用 `exec(background=true)` 启动 yt-dlp，把输出定向到文件。
+   - 文件名格式：`/tmp/ytdlp-{unix时间戳}-{随机6字符}.log`
+   - 同时记下 pid 和文件名到一个持久化的跟踪记录：`~/.openclaw/skills/video-finder/downloads.json`
 
-2. **解析进度**：从输出中提取 `[download]  X.X% of ~X.XMiB at X.XXMiB/s ETA XX:XX`
+2. **下载跟踪记录**：
+```json
+{
+  "active": [
+    {
+      "pid": 2139588,
+      "logfile": "/tmp/ytdlp-1719731234-abc123.log",
+      "url": "https://...",
+      "title": "...",
+      "output_dir": "/vol1/1000/download/movies",
+      "started_at": "2026-06-30T14:48:00+08:00",
+      "last_progress": {},
+      "last_check_at": null
+    }
+  ]
+}
+```
+
+3. **首次检查**：启动后等 **10 秒**后，用 `exec(command="tail -3 /tmp/ytdlp-xxx.log")` 看最新输出
+
+4. **解析进度**：从日志行中提取 `[download]  X.X% of ~X.XMiB at X.XXMiB/s ETA XX:XX`
    - 如果看到 `[download] 100%` → **下载完成**，走 Phase 4
+   - 更新 `downloads.json` 中的 `last_progress`
 
-3. **动态计算下次检查间隔**：
+5. **动态计算下次检查间隔**：
 
 ```
 剩余大小 = 总大小 × (100% - 当前进度)
@@ -303,23 +335,36 @@ yt-dlp [--proxy http://Clash:***@192.168.120.29:7890] \
 | 5-30 分钟 | 1 分钟 |
 | > 30 分钟 | 2 分钟 |
 
-4. **设置下次检查**（用 cron 一次性定时器）：
+6. **设置下次检查**（用 cron 一次性定时器，`sessionTarget="main"`，通过 systemEvent 唤醒当前 session）：
 
 ```
 cron action=add
   schedule.kind = "at"
   schedule.at = now + 检查间隔
   payload.kind = "systemEvent"
-  payload.text = "video-finder 下载进度检查 [sessionId]"
-  sessionTarget = "current"
+  payload.text = "video-finder download progress check"
+  sessionTarget = "main"
   deleteAfterRun = true
 ```
 
-5. **cron 触发时**：
-   - 用 `process(action=log, sessionId=...)` 查看最新输出
-   - 还在下载 → 回到步骤 2，重新解析 → 更新检查间隔 → 设新的定时
-   - 下载完成 ✅ → 走 Phase 4
-   - 下载失败/卡住/无输出更新 → **间隔翻倍重试一次**，还不行就告知{{{user}}}
+7. **cron 触发时（systemEvent 回到主 session）**：
+   - 读取 `~/.openclaw/skills/video-finder/downloads.json` 获取最新活跃下载列表
+   - 对每个活跃下载：
+     a. 用 `exec(command="tail -3 /tmp/ytdlp-xxx.log")` 读取日志最新行
+     b. 检查 pid 是否存活：`exec(command="kill -0 {pid} 2>/dev/null && echo alive || echo dead")`
+     c. **解析进度行** → 提取百分比、速度、ETA
+     d. 更新 `downloads.json` 中的 `last_progress` 和 `last_check_at`
+   - **各种情况处理**：
+     | 检测结果 | 操作 |
+     |---|---|
+     | 日志有 `100%` 或文件已重命名（去掉了.part） | ✅ **下载完成** → 走 Phase 4 |
+     | 进程还在跑，有进度更新 | 重新计算间隔 → 设置新的 cron 定时器 |
+     | 进程还在跑，但输出 30 秒没变化（卡住） | **间隔翻倍重试一次**，还卡就告知{{{user}}} |
+     | 进程已死，日志无 100% | ❌ 下载失败 → 告知{{{user}}}原因 |
+
+8. **清理**：下载完成后
+   - 从 `downloads.json` 的 active 列表移除
+   - 保留日志文件不改（可删可不删）
 
 **进度汇报给{{{user}}}**：
 
@@ -331,6 +376,16 @@ cron action=add
   {{{user}}}，正在下载中～目前 XX%，速度 XX MiB/s，预计还剩 X 分钟
   ```
 - 其他情况安静检测，不打扰
+
+**方式 B 回退（无文件日志时）**：
+
+如果下载是用 `process` 工具启动的（没有日志文件），需要通过其他方式跟踪进度：
+
+1. 直接看下载目录文件变化：`exec(command="ls -lh {目录}/*.part 2>/dev/null || ls -lh {目录}/*.mp4")`
+2. 看到 .part 文件在变大 → 还在下
+3. .part 变成 .mp4 且没有新 .part → 下完了
+4. 没有 .part 且 .mp4 文件大小稳定 → 看进程是否还活着
+5. 这种方式只能检查
 
 #### 3.4 其他站点
 
