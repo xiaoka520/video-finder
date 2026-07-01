@@ -76,14 +76,14 @@ author: Lingling && xiaoka520
 
 ```json
 {
-  "source_type": "欧美 amateur",
-  "quality_min": "1080p",
-  "duration_min_seconds": 300,
-  "exclude_tags": ["黑皮", "ebony", "男同", "gay", "复古", "retro", "猎奇", "短视频"],
-  "preferred_sites": ["xvideos.com", "eporner.com", "pornhub.com"],
-  "site_priority": ["xvideos.com", "eporner.com", "pornhub.com"],
-  "download_dir": "",
-  "plot_tags": false
+  "source_type": "<类型，如：欧美 amateur / JAV / 国产>",
+  "quality_min": "<画质，如：1080p / 4K>",
+  "duration_min_seconds": <片长下限秒数，如：300>,
+  "exclude_tags": ["<排除标签1>", "<排除标签2>"],
+  "preferred_sites": ["<站点1>", "<站点2>"],
+  "site_priority": ["<优先站点1>", "<优先站点2>"],
+  "download_dir": "<下载目录路径，为空则每次询问>",
+  "plot_tags": <是否搜索剧情标签，true/false>
 }
 ```
 
@@ -104,13 +104,13 @@ author: Lingling && xiaoka520
 
 ```json
 {
-  "host": "123.456.789.012",
-  "port": 7890,
+  "host": "<代理IP地址>",
+  "port": <代理端口>,
   "auth": {
-    "username": "username",
-    "password": password
+    "username": "<用户名>",
+    "password": "<密码>"
   },
-  "proxy_required_sites": ["xvideos.com", "eporner.com", "pornhub.com"]
+  "proxy_required_sites": ["<需要代理的站点1>", "<需要代理的站点2>"]
 }
 ```
 
@@ -311,14 +311,18 @@ yt-dlp [--proxy http://Clash:***@192.168.120.29:7890] \
 {
   "active": [
     {
-      "pid": 2139588,
-      "logfile": "/tmp/ytdlp-1719731234-abc123.log",
-      "url": "https://...",
-      "title": "...",
-      "output_dir": "",  // 从下载目录确定流程获取
-      "started_at": "2026-06-30T14:48:00+08:00",
-      "last_progress": {},
-      "last_check_at": null
+      "pid": <yt-dlp进程PID>,
+      "logfile": "/tmp/ytdlp-<时间戳>-<随机字符>.log",
+      "url": "<视频URL>",
+      "title": "<视频标题>",
+      "output_dir": "<下载目录>",
+      "started_at": "<ISO时间格式，如：2026-06-30T14:48:00+08:00>",
+      "last_progress": {
+        "percent": <当前进度百分比>,
+        "speed": "<当前速度，如：12.5MiB/s>",
+        "eta": "<剩余时间，如：02:30>"
+      },
+      "last_check_at": "<上次检查的ISO时间，null表示未检查>"
     }
   ]
 }
@@ -475,10 +479,10 @@ cron action=add
 ```json
 {
   ...原有字段...,
-  "positive_tags": ["natural tits", "amateur", "young", "euro"],
-  "positive_authors": ["author1", "studio_name"],
-  "negative_tags": ["black", "ebony", "old", "retro", "tattoo", "piercing"],
-  "negative_authors": ["bad_channel", "trash_studio"]
+  "positive_tags": ["<用户喜欢的标签1>", "<用户喜欢的标签2>"],
+  "positive_authors": ["<用户喜欢的作者/频道1>", "<用户喜欢的作者/频道2>"],
+  "negative_tags": ["<用户不喜欢的标签1>", "<用户不喜欢的标签2>"],
+  "negative_authors": ["<用户不喜欢的作者/频道1>", "<用户不喜欢的作者/频道2>"]
 }
 ```
 
