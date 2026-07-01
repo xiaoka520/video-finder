@@ -227,7 +227,7 @@ curl -x "http://Clash:***@192.168.120.29:7890" \
 2.2 搜索
     - 通过 multi-search-engine skill 用 `web_fetch` 调用搜索引擎
     - **搜索引擎选择规则**：
-      → 搜索引擎优先级：Bing Global > Google > Yandex > DuckDuckGo
+      → 可用搜索引擎：Bing Global、Google、Yandex、DuckDuckGo
       → 不使用中国大陆搜索引擎（百度、搜狗、360等），这类引擎对成人内容过滤严重，搜不到片
     - 查询句式：
       site:xvideos.com amateur 1080p [关键词]
