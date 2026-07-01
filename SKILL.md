@@ -34,7 +34,7 @@ trigger_keywords:
   - site:xvideos.com
   - site:eporner.com
 
-version: 1.0                        
+version: 1.2                        
 author: Lingling && xiaoka520                    
 ---  
 
@@ -46,11 +46,12 @@ author: Lingling && xiaoka520
 - **称呼约定**：`{{{user}}}` 为占位符，实际对话时根据上下文自然称呼（主人/亲爱的/用户名等）
 
 - `yt-dlp` 安装在宿主机
-- 搜索使用 `web_search` 或 `web_fetch` 直接搜索，按需切换搜索引擎（Bing/Google/Brave/DuckDuckGo 等）
-- **工作目录**：`~/.openclaw/skills/video-finder/`
-- **偏好配置文件**：`~/.openclaw/skills/video-finder/preferences.json`
-- **代理配置文件**：`~/.openclaw/skills/video-finder/proxy.json`
-- **记忆文件**：`~/.openclaw/skills/video-finder/history.md`
+- **工作目录**：skill 所在目录（相对路径，所有 JSON/MD 文件都在此目录下）
+- **偏好配置文件**：`./preferences.json`（skill 同目录）
+- **代理配置文件**：`./proxy.json`（skill 同目录）
+- **下载跟踪文件**：`./downloads.json`（skill 同目录）
+- **记忆文件**：`./history.md`（skill 同目录）
+- **下载目录**：无默认值，由用户指定或自动探测
 - **默认工作空间**：`./workspace`（openclaw 工作空间，最终回退目录）
 
 ## 初始化流程
@@ -80,7 +81,9 @@ author: Lingling && xiaoka520
   "duration_min_seconds": 300,
   "exclude_tags": ["黑皮", "ebony", "男同", "gay", "复古", "retro", "猎奇", "短视频"],
   "preferred_sites": ["xvideos.com", "eporner.com", "pornhub.com"],
-  "site_priority": ["xvideos.com", "eporner.com", "pornhub.com"]
+  "site_priority": ["xvideos.com", "eporner.com", "pornhub.com"],
+  "download_dir": "",
+  "plot_tags": false
 }
 ```
 
@@ -101,11 +104,11 @@ author: Lingling && xiaoka520
 
 ```json
 {
-  "host": "192.168.120.29",
+  "host": "123.456.789.012",
   "port": 7890,
   "auth": {
-    "username": "Clash",
-    "password": "***"
+    "username": "username",
+    "password": password
   },
   "proxy_required_sites": ["xvideos.com", "eporner.com", "pornhub.com"]
 }
@@ -129,7 +132,13 @@ author: Lingling && xiaoka520
 
 **每次下载前执行：**
 
-### 第一步：问用户
+### 第一步：检查 preferences.json
+
+读取 `preferences.json` 中的 `download_dir` 字段：
+- **非空字符串**且目录存在 → 直接使用，跳过后续步骤
+- 空字符串或不存在 → 走第二步
+
+### 第二步：问用户
 
 ```
 {{{user}}}，下到哪个目录呀？
@@ -137,19 +146,18 @@ author: Lingling && xiaoka520
 
 - 用户明确回答 → 就用这个目录（**不存偏好，仅本次有效**）
 - 用户说"老地方"或"上次那个" → 查 history.md 最后一条记录所用的目录
-- 用户说"默认"或不答 → 走第二步
+- 用户说"默认"或不答 → 走第三步
 
-### 第二步：用户不答 → 自动探测
+### 第三步：用户不答 → 自动探测
 
 按优先级探测本机常见下载目录：
 
 ```bash
 for dir in \
-  /download \
   ~/Downloads \
-  ~/download \
-  /mnt/download \
-  /data/download; do
+  /vol1/1000/download \
+  ~/Downloads \
+  ~/download; do
   [ -d "$dir" ] && echo "$dir"
 done
 ```
@@ -159,7 +167,7 @@ done
 - **一条都没找到** → **回退到 openclaw 的 workspace**：
   `./workspace`
 
-### 第三步：路径存在性验证
+### 第四步：路径存在性验证
 
 用 `[ -d "$path" ]` 确认路径可写，再继续下载。
 
@@ -217,9 +225,10 @@ curl -x "http://Clash:***@192.168.120.29:7890" \
 2.1 探测目标站点可达性（Phase 0）
 
 2.2 搜索
-    - 通过多搜索引擎技能（multi-search-engine）用 `web_fetch` 调用搜索引擎
-    - 中文不限定Bing CN，英文不限定Google/Brave等
-      → 始终先尝试 `multi-search-engine` 可用的引擎，按需选择搜索引擎
+    - 通过 multi-search-engine skill 用 `web_fetch` 调用搜索引擎
+    - **搜索引擎选择规则**：
+      → 搜索引擎优先级：Bing Global > Google > Yandex > DuckDuckGo
+      → 不使用中国大陆搜索引擎（百度、搜狗、360等），这类引擎对成人内容过滤严重，搜不到片
     - 查询句式：
       site:xvideos.com amateur 1080p [关键词]
       site:xvideos.com "natural tits" 2025
@@ -253,7 +262,7 @@ curl -x "http://Clash:***@192.168.120.29:7890" \
 
 ```
 3.1 确定下载目录（走下载目录确定流程）
-    问用户 → 自动探测 → 都找不到回退到 workspace
+    检查 preferences.json → 问用户 → 自动探测 → 都找不到回退到 workspace
 
 3.2 代理判断
     站点在 proxy_required_sites 中 → 用代理
@@ -267,16 +276,16 @@ curl -x "http://Clash:***@192.168.120.29:7890" \
 
 > **关键约束**：`process` 工具输出的 session 只在当前对话 session 有效，跨 session（cron 触发时）无法直接通过 `process(action=poll/log, sessionId=...)` 获取。因此改用 **文件跟踪法**。
 
-**启动下载**（两种方式选一）：
+**启动下载**：
 
-**方式 A（推荐——文件跟踪法，支持跨 session 进度检测）**：
+**默认使用方式 A（文件跟踪法，支持跨 session 进度检测）**：
 ```bash
 # 直接 exec 后台运行，把输出写文件
 exec command="cd {所选目录} && yt-dlp \"...\" > /tmp/ytdlp-{文件唯一标识}.log 2>&1"
 # 注意：这里的 exec 会阻塞，所以要用 background=true 或 yieldMs=5000 来放后台
 ```
 
-**方式 B（旧方法——`process` 工具后台）**：
+**方式 B（仅在方式 A 不可用时回退——`process` 工具后台）**：
 ```bash
 yt-dlp [--proxy http://Clash:***@192.168.120.29:7890] \
        -f "bestvideo[height<=?1080]+bestaudio/best[height<=?1080]" \
@@ -295,7 +304,7 @@ yt-dlp [--proxy http://Clash:***@192.168.120.29:7890] \
 
 1. **启动后立即**：用 `exec(background=true)` 启动 yt-dlp，把输出定向到文件。
    - 文件名格式：`/tmp/ytdlp-{unix时间戳}-{随机6字符}.log`
-   - 同时记下 pid 和文件名到一个持久化的跟踪记录：`~/.openclaw/skills/video-finder/downloads.json`
+   - 同时记下 pid 和文件名到一个持久化的跟踪记录：`./downloads.json`（skill 同目录）
 
 2. **下载跟踪记录**：
 ```json
@@ -306,7 +315,7 @@ yt-dlp [--proxy http://Clash:***@192.168.120.29:7890] \
       "logfile": "/tmp/ytdlp-1719731234-abc123.log",
       "url": "https://...",
       "title": "...",
-      "output_dir": "/vol1/1000/download/movies",
+      "output_dir": "",  // 从下载目录确定流程获取
       "started_at": "2026-06-30T14:48:00+08:00",
       "last_progress": {},
       "last_check_at": null
@@ -350,7 +359,7 @@ cron action=add
 ```
 
 7. **cron 触发时（systemEvent 回到主 session）**：
-   - 读取 `~/.openclaw/skills/video-finder/downloads.json` 获取最新活跃下载列表
+   - 读取 `./downloads.json` 获取最新活跃下载列表
    - 对每个活跃下载：
      a. 用 `exec(command="tail -3 /tmp/ytdlp-xxx.log")` 读取日志最新行
      b. 检查 pid 是否存活：`exec(command="kill -0 {pid} 2>/dev/null && echo alive || echo dead")`
@@ -375,12 +384,12 @@ cron action=add
 
 **一次性动态 cron（主检测链）**：
 - 每次检测后根据剩余时间动态设定下次检查间隔（10秒～2分钟）
-- 检测到完成/失败 → 走 Phase 4，取消兜底 cron
+- 检测到完成/失败 → 走 Phase 4，**同时取消兜底 cron 和一次性动态 cron**
 
 **定期兜底 cron（保底汇报）**：
 ```
 cron action=add
-  name = "video-finder-progress-{文件标识}"
+  name = "video-finder-progress"
   schedule.kind = "every"
   schedule.everyMs = 120000    # 固定 2 分钟
   payload.kind = "systemEvent"
@@ -394,16 +403,17 @@ cron action=add
   1️⃣ 当前进度：45.3%，速度 12.5 MiB/s，预计还剩 2 分半
   2️⃣ 文件大小：~450 MB
   ```
-- 如果全部下载已完成/已消失 → **自动移除该兜底 cron**：`cron action=remove name="video-finder-progress-{文件标识}"`
+- 如果全部下载已完成/已消失 → **自动移除该兜底 cron**：`cron action=remove name="video-finder-progress"`
 - 兜底和一次性动态 cron 同时工作，互不冲突
+- **防重复触发**：检测到下载完成/失败时，同时取消一次性动态 cron 和兜底 cron，避免重复汇报
 
 **触发时机总结**：
 
 | 触发者 | 时机 | 汇报内容 |
 |-------|------|---------|
 | 一次性动态cron | 每次检测到进度更新 | 安静，不向{{{user}}}汇报 |
-| 一次性动态cron | 下载完成 ✅ | 文件名、路径、大小 |
-| 一次性动态cron | 下载失败 ❌ | 失败原因 |
+| 一次性动态cron | 下载完成 ✅ | 文件名、路径、大小，**同时取消兜底 cron** |
+| 一次性动态cron | 下载失败 ❌ | 失败原因，**同时取消兜底 cron** |
 | 兜底 cron（每2分钟） | 有下载活跃时 | 当前进度、速度、预估剩余时间 |
 | 兜底 cron | 全部下载完成 | 自动移除自身 |
 
@@ -494,10 +504,9 @@ cron action=add
 |---|---|
 | **用户确认后才下载** | 不能替用户决定下载哪个，只能推荐 |
 | 不主动整站翻页搜刮 | 用户给了方向才搜 |
-| 不关注剧情标签 | 忽略剧情关键词 |
-| 下载目录动态确定 | 先问 → 自动探测 → 都找不到回退到 workspace |
+| 不关注剧情标签 | 默认忽略剧情关键词（可在 preferences.json 配置 `include剧情标签: true` 开启） |
+| 下载目录动态确定 | 先检查 preferences.json → 问用户 → 自动探测 → 都找不到回退到 workspace |
 | proxy.json 保密 | 不在对话/日志中输出密码 |
-| 国内引擎搜不到切 Brave | Bing CN 可能过滤成人内容 |
 | 反馈闭环 | 看完片后主动问反馈，根据反馈维护正/负面标签和作者 |
 
 ---
