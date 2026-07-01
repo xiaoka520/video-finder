@@ -34,7 +34,7 @@ trigger_keywords:
   - site:xvideos.com
   - site:eporner.com
 
-version: 1.2                        
+version: 1.1                        
 author: Lingling && xiaoka520                    
 ---  
 
