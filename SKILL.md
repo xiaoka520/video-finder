@@ -155,9 +155,8 @@ author: Lingling && xiaoka520
 ```bash
 for dir in \
   ~/Downloads \
-  /vol1/1000/download \
-  ~/Downloads \
-  ~/download; do
+  ~/download \
+  /vol1/1000/download; do
   [ -d "$dir" ] && echo "$dir"
 done
 ```
@@ -191,7 +190,7 @@ done
 ### 有代理时重试
 
 ```bash
-curl -x "http://Clash:***@192.168.120.29:7890" \
+curl -x "http://<用户名>:<密码>@<代理IP>:<端口>" \
      -s -o /dev/null -w "%{http_code}" --connect-timeout 5 "<target>"
 ```
 
@@ -287,7 +286,7 @@ exec command="cd {所选目录} && yt-dlp \"...\" > /tmp/ytdlp-{文件唯一标�
 
 **方式 B（仅在方式 A 不可用时回退——`process` 工具后台）**：
 ```bash
-yt-dlp [--proxy http://Clash:***@192.168.120.29:7890] \
+yt-dlp [--proxy http://<用户名>:<密码>@<代理IP>:<端口>] \
        -f "bestvideo[height<=?1080]+bestaudio/best[height<=?1080]" \
        -o "{所选目录}/%(title)s.%(ext)s" \
        --newline \
