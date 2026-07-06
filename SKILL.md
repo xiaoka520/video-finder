@@ -2,14 +2,11 @@
 name: video_finder
 license: MIT
 spdx: MIT
-description: >-                     
-  帮助用户寻找色情视频
+description: 帮助用户搜索、筛选并下载成人影片。支持 yt-dlp 下载、偏好记忆、代理配置、进度监控和反馈闭环。触发：找片、搜片、下片、下载视频、JAV、Pornhub 等
 
 trigger_keywords:                   
   - 找片
   - 搜片
-  - 下片
-  - 看片
   - 来片
   - 来个片
   - 有没有片
@@ -25,14 +22,6 @@ trigger_keywords:
   - sex tape
   - 🔞
   - NSFW
-  - 素材
-  - 资源
-  - 学习资料
-  - 那个网站
-  - 老地方
-  - 上次那种
-  - site:xvideos.com
-  - site:eporner.com
 
 version: 1.1                        
 author: Lingling && xiaoka520                    
@@ -154,9 +143,11 @@ author: Lingling && xiaoka520
 
 ```bash
 for dir in \
-  ~/Downloads \
-  ~/download \
-  /vol1/1000/download; do
+  "${HOME}/Downloads"
+  "${HOME}/downloads"
+  "/downloads"
+  "/data/downloads"
+  "${WORKSPACE:-./workspace}"; do
   [ -d "$dir" ] && echo "$dir"
 done
 ```
@@ -289,12 +280,12 @@ yt-dlp [--proxy http://<用户名>:<密码>@<代理IP>:<端口>] \
        -f "bestvideo[height<=?1080]+bestaudio/best[height<=?1080]" \
        -o "{所选目录}/%(title)s.%(ext)s" \
        --newline \
-       --downloader aria2c \
-       --downloader-args "aria2c:-x 16 -s 16 -k 1M" \
+       --downloader aria2-next \
+       --downloader-args "aria2-next:-x 16 -s 16 -k 1M" \
        "<url>"
 ```
 > `--newline` 让 yt-dlp 每行一条进度，方便解析  
-> `--downloader aria2c -x 16 -s 16 -k 1M` 用 aria2c 分 16 线程下载
+> `--downloader aria2-next -x 16 -s 16 -k 1M` 用 aria2-next 分 16 线程下载
 
 ---
 
