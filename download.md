@@ -249,7 +249,7 @@ cron 触发 systemEvent "video-finder download progress check"
     "logfile": "/tmp/ytdlp-1718123456-a3b9f2.log",
     "url": "https://...",
     "title": "Passionate sex of real amateur couple",
-    "output_dir": "/vol1/1000/download/movies",
+    "output_dir": "~/Downloads/movies",
     "total_size_bytes": 488636416,
     "max_timeout": 7200,
     "started_at": "2026-07-06T14:30:00+08:00",

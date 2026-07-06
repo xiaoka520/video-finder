@@ -77,7 +77,7 @@ preferences.json
 │     "blonde": 6,
 │     "young": 5, ...}
 ├─ author_weights: {              → 权重 ≥ 2 的作者注入 Q2/Q4
-│     "LikaBusy": 4 }
+│     "CreatorName": 4 }
 ├─ exclude_tags: ["黑皮", "old",  → 注入 Q3 加 "-" 前缀排除（硬排除，不受权重影响）
 │   "milf", "复古", ...]
 └─ tag_weights 中权重 ≤ 0 的标签  → 注入 Q3 加 "-" 前缀排除

@@ -55,8 +55,8 @@ description: "观影后反馈闭环：提醒用户给反馈（非强制）、根
     "hospital": 1
   },
   "author_weights": {
-    "LikaBusy": 4,
-    "Hidden Kitten": 2
+    "CreatorName": 4,
+    "AuthorName": 2
   }
 }
 ```
@@ -109,7 +109,7 @@ for tag in tag_weights:
 {
   "...原有字段不变...": "...",
   "tag_weights": { "amateur": 12, "homemade": 10, ... },
-  "author_weights": { "LikaBusy": 4, ... }
+  "author_weights": { "CreatorName": 4, ... }
 }
 ```
 

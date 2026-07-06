@@ -1,61 +1,80 @@
 {
-  "active": [],
+  "active": [
+    {
+      "id": "1718123999-x7k2m1",
+      "pid": 28461,
+      "logfile": "/tmp/ytdlp-1718123999-x7k2m1.log",
+      "url": "https://example.com/video-active-01",
+      "title": "Blonde Teen First Time Casting",
+      "output_dir": "~/Downloads/movies",
+      "total_size_bytes": 892000000,
+      "max_timeout": 7200,
+      "started_at": "2026-07-06T15:30:00+08:00",
+      "state": "downloading",
+      "last_progress": { "percent": 62.3, "speed": "8.2MiB/s", "eta": "00:45" },
+      "last_check_at": "2026-07-06T15:35:00+08:00"
+    }
+  ],
   "completed": [
     {
       "id": "01",
       "title": "Passionate sex of real amateur couple",
-      "filename": "01_passionate_sex_real_amateur_couple_1080p.mp4",
+      "filename": "01_passionate_real_couple_1080p.mp4",
       "size_bytes": 466000000,
-      "completed_at": "2026-06-30T17:09:00+08:00"
+      "completed_at": "2026-07-03T22:15:00+08:00"
     },
     {
       "id": "02",
-      "title": "My Hot Girlfriend Got Bored - LikaBusy",
-      "filename": "02_hot_girlfriend_likabusy_1080p.mp4",
-      "size_bytes": 473000000,
-      "completed_at": "2026-06-30T17:09:00+08:00"
+      "title": "Cute European Teen Solo Play",
+      "filename": "02_euro_teen_solo_720p.mp4",
+      "size_bytes": 187000000,
+      "completed_at": "2026-07-03T23:42:00+08:00"
     },
     {
       "id": "03",
-      "title": "Amateur passionate couple in real homemade",
-      "filename": "03_amateur_passionate_homemade_couple.mp4",
-      "size_bytes": 62000000,
-      "completed_at": "2026-06-30T17:09:00+08:00"
+      "title": "Homemade Morning Sex With Girlfriend",
+      "filename": "03_morning_girlfriend_homemade_1080p.mp4",
+      "size_bytes": 312000000,
+      "completed_at": "2026-07-04T09:10:00+08:00"
     },
     {
       "id": "04",
-      "title": "Hard doggystyle creampie and G Spot orgasm",
-      "filename": "04_doggystyle_creampie_gspot_orgasm_1080p.mp4",
-      "size_bytes": 396000000,
-      "completed_at": "2026-06-30T17:09:00+08:00"
+      "title": "Yoga Instructor Stretching Then Fucking",
+      "filename": "04_yoga_instructor_4k.mp4",
+      "size_bytes": 2100000000,
+      "completed_at": "2026-07-04T16:55:00+08:00"
     },
     {
       "id": "05",
-      "title": "Sexy Girlfriend Out Of Control Homemade Real Sex",
-      "filename": "05_sexy_girlfriend_homemade_real_1080p.mp4",
-      "size_bytes": 405000000,
-      "completed_at": "2026-06-30T17:09:00+08:00"
+      "title": "Real Couple Intense Orgasm Compilation",
+      "filename": "05_couple_orgasm_comp_1080p.mp4",
+      "size_bytes": 678000000,
+      "completed_at": "2026-07-05T20:30:00+08:00"
     },
     {
       "id": "06",
-      "title": "Fucked Her Throat Then Her Pussy - Real Amateur Hidden Kitten",
-      "filename": "06_real_amateur_hidden_kitten_1080p.mp4",
-      "size_bytes": 369000000,
-      "completed_at": "2026-06-30T17:09:00+08:00"
+      "title": "Petite Brunette First Audition Nervous",
+      "filename": "06_brunette_audition_1080p.mp4",
+      "size_bytes": 534000000,
+      "completed_at": "2026-07-05T22:08:00+08:00"
+    }
+  ],
+  "failed": [
+    {
+      "id": "f01",
+      "title": "4K Beach Outdoor Public Fun",
+      "filename": null,
+      "url": "https://example.com/video-failed-01",
+      "failed_at": "2026-07-04T14:20:00+08:00",
+      "reason": "下载超时（> 2 小时）"
     },
     {
-      "id": "07",
-      "title": "Perfect Body Teen Girl Fuck With Boyfriend",
-      "filename": "07_perfect_body_teen_boyfriend_1080p.mp4",
-      "size_bytes": 431000000,
-      "completed_at": "2026-06-30T17:09:00+08:00"
-    },
-    {
-      "id": "08",
-      "title": "Amateur Teen couple homemade real orgasm sex",
-      "filename": "08_amateur_teen_homemade_orgasm.mp4",
-      "size_bytes": 21480730,
-      "completed_at": "2026-06-30T16:48:00+08:00"
+      "id": "f02",
+      "title": "Cosplay Nurse Roleplay Full Scene",
+      "filename": null,
+      "url": "https://example.com/video-failed-02",
+      "failed_at": "2026-07-05T11:45:00+08:00",
+      "reason": "链接失效 403"
     }
   ]
 }

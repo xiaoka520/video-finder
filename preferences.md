@@ -101,8 +101,8 @@ description: "管理用户的影片偏好配置。首次使用初始化偏好问
     "young": 5
   },
   "author_weights": {
-    "LikaBusy": 4,
-    "Hidden Kitten": 2
+    "CreatorName": 4,
+    "AuthorName": 2
   }
 }
 ```
