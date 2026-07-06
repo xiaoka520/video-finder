@@ -1,14 +1,29 @@
 {
+  "schema_version": 2,
   "source_type": "欧美 amateur",
   "quality_min": "1080p",
   "duration_min_seconds": 300,
-  "exclude_tags": ["黑皮", "old", "mature", "granny", "saggy tits", "droopy", "下垂", "大龄", "milf", "复古", "retro", "vintage", "小胸", "flat chest", "petite chest", "a cup", "small tits", "tiny tits", "商业化", "pornstar", "studio", "professional", "brazzers", "bangbros", "reality kings", "naughty america", "vixen", "blacked", "打码", "马赛克", "censored", "mosaic", "blurred", "pixelated", "jav", "ssbbw", "us胖", "obese", "fat", "超大码"],
+  "exclude_tags": ["黑皮", "old", "mature", "granny", "saggy tits", "droopy", "下垂", "大龄", "milf", "复古", "retro", "vintage", "小胸", "flat chest", "petite chest", "a cup", "small tits", "tiny tits", "商业化", "pornstar", "studio", "professional", "brazzers", "bangbros", "reality kings", "naughty america", "vixen", "blacked", "打码", "马赛克", "censored", "mosaic", "blurred", "pixelated", "jav", "ssbbw", "us胖", "obese", "fat", "超大码", "black", "bbc", "ebony", "saggy", "droopy breasts", "复古", "retro", "vintage", "flat"],
   "preferred_sites": ["xvideos.com", "eporner.com"],
   "site_priority": ["xvideos.com", "eporner.com"],
   "download_dir": "",
   "plot_tags": false,
-  "negative_tags": ["black", "blacked", "bbc", "ebony", "old", "mature", "granny", "saggy", "droopy breasts", "下垂", "大龄", "复古", "retro", "vintage", "小胸", "flat chest", "a cup", "small tits", "tiny tits", "flat", "pornstar", "studio", "professional", "brazzers", "bangbros", "reality kings", "naughty america", "vixen", "打码", "马赛克", "censored", "mosaic", "blurred", "pixelated", "jav", "ssbbw", "obese", "fat", "超大码"],
-  "negative_authors": [],
-  "positive_tags": ["big tits", "natural tits", "young", "tight", "petite", "euro", "european", "hd", "amateur", "homemade", "big natural", "real couple", "girlfriend", "amateur couple", "uncensored"],
-  "positive_authors": []
+  "tag_weights": {
+    "big tits": 5,
+    "natural tits": 5,
+    "young": 5,
+    "tight": 5,
+    "petite": 5,
+    "euro": 5,
+    "european": 5,
+    "hd": 5,
+    "amateur": 5,
+    "homemade": 5,
+    "big natural": 5,
+    "real couple": 5,
+    "girlfriend": 5,
+    "amateur couple": 5,
+    "uncensored": 5
+  },
+  "author_weights": {}
 }

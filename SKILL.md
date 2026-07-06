@@ -23,8 +23,8 @@ trigger_keywords:
   - 🔞
   - NSFW
 
-version: 1.1                        
-author: Lingling && xiaoka520                    
+version: 2.0
+author: Lingling && xiaoka520
 ---  
 
 # video-finder — 找片下载技能
@@ -32,402 +32,65 @@ author: Lingling && xiaoka520
 搜索、筛选并下载成人影片。
 
 ## 前置条件
-- **称呼约定**：`{{{user}}}` 为占位符，实际对话时根据上下文自然称呼（主人/亲爱的/用户名等）
 
+- **称呼约定**：`{{{user}}}` 为占位符，实际对话时根据上下文自然称呼
 - `yt-dlp` 安装在宿主机
 - **工作目录**：skill 所在目录（相对路径，所有 JSON/MD 文件都在此目录下）
-- **偏好配置文件**：`./preferences.json`（skill 同目录）
-- **代理配置文件**：`./proxy.json`（skill 同目录）
-- **下载跟踪文件**：`./downloads.json`（skill 同目录）
-- **记忆文件**：`./history.md`（skill 同目录）
+- **偏好配置**：`./preferences.json`
+- **代理配置**：`./proxy.json`
+- **下载跟踪**：`./tracking/downloads.json`
+- **记忆文件**：`./history.md`
 - **下载目录**：无默认值，由用户指定或自动探测
-- **默认工作空间**：`./workspace`（openclaw 工作空间，最终回退目录）
+- **默认工作空间**：`./workspace`（最终回退目录）
 
-## 初始化流程
+## 子技能
 
-### 1.1 内容偏好初始化（首次使用）
-
-**触发条件**：`preferences.json` 不存在
-
-**操作**：向用户逐一提问
-
-```
-{{{user}}}，这是你第一次用找片功能～我先记一下你的偏好：
-
-1️⃣ 偏好类型：（例：欧美 amateur / JAV / 国产 / 不限）
-2️⃣ 画质要求：（例：1080p / 4K / 不限）
-3️⃣ 片长下限：（例：5分钟 / 10分钟 / 不限）
-4️⃣ 排除标签：（例：黑皮、男同、复古、猎奇）
-5️⃣ 首选站点：（例：XVideos / Eporner / Pornhub）
-```
-
-**写入** → `preferences.json`
-
-```json
-{
-  "source_type": "<类型，如：欧美 amateur / JAV / 国产>",
-  "quality_min": "<画质，如：1080p / 4K>",
-  "duration_min_seconds": <片长下限秒数，如：300>,
-  "exclude_tags": ["<排除标签1>", "<排除标签2>"],
-  "preferred_sites": ["<站点1>", "<站点2>"],
-  "site_priority": ["<优先站点1>", "<优先站点2>"],
-  "download_dir": "<下载目录路径，为空则每次询问>",
-  "plot_tags": <是否搜索剧情标签，true/false>
-}
-```
-
-**同时**：创建 `history.md`，写入初始表头
-
-### 1.2 代理配置初始化
-
-**触发时机**：第一次遇到目标站点直连不通时
-
-**操作**：
-
-```
-{{{user}}}，<站点名>直连连不上呢～你有代理可以用吗？
-```
-
-**情况 A**：用户提供代理信息（host / port / auth）
-→ 写入 `proxy.json`
-
-```json
-{
-  "host": "<代理IP地址>",
-  "port": <代理端口>,
-  "auth": {
-    "username": "<用户名>",
-    "password": "<密码>"
-  },
-  "proxy_required_sites": ["<需要代理的站点1>", "<需要代理的站点2>"]
-}
-```
-
-**情况 B**：用户暂不配代理
-→ 写空值标记 `{}`，后续遇不通仍会再问
-
-**情况 C**：用户本次能用但不想存
-→ 本次加 `--proxy` 但不写文件，仅会话有效
-
-**安全约束**：proxy.json 含密码，不在对话/日志/代码示例中输出
-
-### 1.3 后续使用
-
-直接读取 `preferences.json` + `proxy.json`，跳过初始化
-
----
-
-## 下载目录确定流程
-
-**每次下载前执行：**
-
-### 第一步：检查 preferences.json
-
-读取 `preferences.json` 中的 `download_dir` 字段：
-- **非空字符串**且目录存在 → 直接使用，跳过后续步骤
-- 空字符串或不存在 → 走第二步
-
-### 第二步：问用户
-
-```
-{{{user}}}，下到哪个目录呀？
-```
-
-- 用户明确回答 → 就用这个目录（**不存偏好，仅本次有效**）
-- 用户说"老地方"或"上次那个" → 查 history.md 最后一条记录所用的目录
-- 用户说"默认"或不答 → 走第三步
-
-### 第三步：用户不答 → 自动探测
-
-按优先级探测本机常见下载目录：
-
-```bash
-for dir in \
-  "${HOME}/Downloads"
-  "${HOME}/downloads"
-  "/downloads"
-  "/data/downloads"
-  "${WORKSPACE:-./workspace}"; do
-  [ -d "$dir" ] && echo "$dir"
-done
-```
-
-- **探到一条** → 自动使用，并告知{{{user}}}
-- **探到多条** → 列出让{{{user}}}选
-- **一条都没找到** → **回退到 openclaw 的 workspace**：
-  `./workspace`
-
-### 第四步：路径存在性验证
-
-用 `[ -d "$path" ]` 确认路径可写，再继续下载。
-
----
-
-## 代理探测流程
-
-### 每次访问站点前
-
-```
-1. 读取 proxy.json
-   ├─ 有配置 → 构建代理 URL
-   │   http://{username}:***}@{host}:{port}
-   │
-   └─ 无配置 / 空值 → 直连探测
-       curl --connect-timeout 5 "<target>"
-       ├─ 200/30x → 直连可用 ✅
-       └─ 超时/拒绝 → 触发 1.2 代理配置初始化
-```
-
-### 有代理时重试
-
-```bash
-curl -x "http://<用户名>:<密码>@<代理IP>:<端口>" \
-     -s -o /dev/null -w "%{http_code}" --connect-timeout 5 "<target>"
-```
-
-### 更新代理
-
-用户随时可要求更新代理 → 覆盖 `proxy.json`
-
----
+| 技能 | 文件 | 职责 |
+|------|------|------|
+| 偏好管理 | `preferences.md` | 偏好初始化、修改、标签维护 |
+| 代理探测 | `proxy.md` | 网络可达性探测、代理配置 |
+| 搜索 | `search.md` | 多引擎搜索、自动筛选、结果展示 |
+| 下载 | `download.md` | 目录确定、yt-dlp 下载、进度跟踪、清理 |
+| 反馈闭环 | `feedback.md` | 观后反馈、正负面标签提炼 |
 
 ## 完整工作流程
 
-### Phase 0: 代理探测（每次访问站点前）
+### Phase 0: 代理探测
 
-按代理探测流程执行
+委托给 `video_finder_proxy`：每次访问站点前探测可达性。
 
 ### Phase 1: 接收任务
 
 ```
 收到请求
-├─ 检查 preferences.json（首次→走 1.1 初始化）
-├─ 检查 proxy.json（首次→跳过，后续探测不通时走 1.2）
+├─ 检查 preferences.json（首次→委托 video_finder_preferences 初始化）
+├─ 检查 proxy.json（首次→跳过，不通时委托 video_finder_proxy 初始化）
 │
 ├─ 用户给关键词 → 走 Phase 2 搜索
 ├─ 用户给链接 → 走 Phase 3 下载
-└─ 用户说"改偏好" → 走 1.1 重新覆盖 preferences.json
+└─ 用户说"改偏好" → 委托 video_finder_preferences 覆盖配置
 ```
 
 ### Phase 2: 搜索
 
-```
-2.1 探测目标站点可达性（Phase 0）
+委托给 `video_finder_search`：
+1. 探测目标站点可达性（→ video_finder_proxy）
+2. 多搜索引擎查询
+3. 获取页面内容（web_fetch / browser）
+4. 基于 preferences.json 自动筛选
+5. 展示结果供用户选择
 
-2.2 搜索
-    - 通过 multi-search-engine skill 用 `web_fetch` 调用搜索引擎
-    - **搜索引擎选择规则**：
-      → 可用搜索引擎：Bing Global、Google、Yandex、DuckDuckGo
-    - 查询句式：
-      site:xvideos.com amateur 1080p [关键词]
-      site:xvideos.com "natural tits" 2025
-    - 每次间隔 1-2 秒
-    - 如果搜索受限（被过滤/结果不相关），切换不同引擎
-
-2.3 获取页面内容
-    web_fetch 直连 → 能取到就直接提取
-    web_fetch + 代理 → 直连不通时加代理重试
-    JS 渲染页面（XVideos 等）→ browser 工具访问截图
-
-2.4 自动筛选（基于 preferences.json）
-    ✓ 标题命中偏好类型关键词
-    ✓ 时长 ≥ duration_min_seconds
-    ✓ 画质 ≥ quality_min
-    ✓ 排除标签不命中
-    ✓ 非短视频
-
-2.5 结果展示
-
-    {{{user}}}，搜到以下结果：
-    1️⃣ [标题] — [来源站] — [时长] — [画质]
-    2️⃣ [标题] — [来源站] — [时长] — [画质]
-    ...
-
-    → 用户选定 → 走 Phase 3 下载
-    → 用户不满意 → 换关键词重新搜
-```
+→ 用户选定 → Phase 3  
+→ 用户不满意 → 换关键词重新搜
 
 ### Phase 3: 下载
 
-```
-3.1 确定下载目录（走下载目录确定流程）
-    检查 preferences.json → 问用户 → 自动探测 → 都找不到回退到 workspace
-
-3.2 代理判断
-    站点在 proxy_required_sites 中 → 用代理
-    直连测试可达 → 不用代理
-    直连不通且 proxy.json 为空 → 触发 1.2
-
-3.3 启动下载 + 定时进度检测
-```
-
-#### 3.3 启动下载 + 定时进度检测
-
-> **关键约束**：`process` 工具输出的 session 只在当前对话 session 有效，跨 session（cron 触发时）无法直接通过 `process(action=poll/log, sessionId=...)` 获取。因此改用 **文件跟踪法**。
-
-**启动下载**：
-
-**默认使用方式 A（文件跟踪法，支持跨 session 进度检测）**：
-```bash
-# 直接 exec 后台运行，把输出写文件
-exec command="cd {所选目录} && yt-dlp \"...\" > /tmp/ytdlp-{文件唯一标识}.log 2>&1"
-# 注意：这里的 exec 会阻塞，所以要用 background=true 或 yieldMs=5000 来放后台
-```
-
-**方式 B（仅在方式 A 不可用时回退——`process` 工具后台）**：
-```bash
-yt-dlp [--proxy http://<用户名>:<密码>@<代理IP>:<端口>] \
-       -f "bestvideo[height<=?1080]+bestaudio/best[height<=?1080]" \
-       -o "{所选目录}/%(title)s.%(ext)s" \
-       --newline \
-       --downloader aria2-next \
-       --downloader-args "aria2-next:-x 16 -s 16 -k 1M" \
-       "<url>"
-```
-> `--newline` 让 yt-dlp 每行一条进度，方便解析  
-> `--downloader aria2-next -x 16 -s 16 -k 1M` 用 aria2-next 分 16 线程下载
-
----
-
-**进度检测逻辑（方式 A 文件跟踪法）**：
-
-1. **启动后立即**：用 `exec(background=true)` 启动 yt-dlp，把输出定向到文件。
-   - 文件名格式：`/tmp/ytdlp-{unix时间戳}-{随机6字符}.log`
-   - 同时记下 pid 和文件名到一个持久化的跟踪记录：`./downloads.json`（skill 同目录）
-
-2. **下载跟踪记录**：
-```json
-{
-  "active": [
-    {
-      "pid": <yt-dlp进程PID>,
-      "logfile": "/tmp/ytdlp-<时间戳>-<随机字符>.log",
-      "url": "<视频URL>",
-      "title": "<视频标题>",
-      "output_dir": "<下载目录>",
-      "started_at": "<ISO时间格式，如：2026-06-30T14:48:00+08:00>",
-      "last_progress": {
-        "percent": <当前进度百分比>,
-        "speed": "<当前速度，如：12.5MiB/s>",
-        "eta": "<剩余时间，如：02:30>"
-      },
-      "last_check_at": "<上次检查的ISO时间，null表示未检查>"
-    }
-  ]
-}
-```
-
-3. **首次检查**：启动后等 **10 秒**后，用 `exec(command="tail -3 /tmp/ytdlp-xxx.log")` 看最新输出
-
-4. **解析进度**：从日志行中提取 `[download]  X.X% of ~X.XMiB at X.XXMiB/s ETA XX:XX`
-   - 如果看到 `[download] 100%` → **下载完成**，走 Phase 4
-   - 更新 `downloads.json` 中的 `last_progress`
-
-5. **动态计算下次检查间隔**：
-
-```
-剩余大小 = 总大小 × (100% - 当前进度)
-速度 = 当前下载速度
-预估剩余时间 = 剩余大小 / 速度
-检查间隔 = max(10, min(预估剩余时间 / 4, 120))  单位：秒
-```
-
-| 预估剩余时间 | 检查间隔 |
-|---|---|
-| < 1 分钟 | 10 秒 |
-| 1-5 分钟 | 30 秒 |
-| 5-30 分钟 | 1 分钟 |
-| > 30 分钟 | 2 分钟 |
-
-6. **设置下次检查**（用 cron 一次性定时器，`sessionTarget="main"`，通过 systemEvent 唤醒当前 session）：
-
-```
-cron action=add
-  schedule.kind = "at"
-  schedule.at = now + 检查间隔
-  payload.kind = "systemEvent"
-  payload.text = "video-finder download progress check"
-  sessionTarget = "main"
-  deleteAfterRun = true
-```
-
-7. **cron 触发时（systemEvent 回到主 session）**：
-   - 读取 `./downloads.json` 获取最新活跃下载列表
-   - 对每个活跃下载：
-     a. 用 `exec(command="tail -3 /tmp/ytdlp-xxx.log")` 读取日志最新行
-     b. 检查 pid 是否存活：`exec(command="kill -0 {pid} 2>/dev/null && echo alive || echo dead")`
-     c. **解析进度行** → 提取百分比、速度、ETA
-     d. 更新 `downloads.json` 中的 `last_progress` 和 `last_check_at`
-   - **各种情况处理**：
-     | 检测结果 | 操作 |
-     |---|---|
-     | 日志有 `100%` 或文件已重命名（去掉了.part） | ✅ **下载完成** → 走 Phase 4 |
-     | 进程还在跑，有进度更新 | 重新计算间隔 → 设置新的 cron 定时器 |
-     | 进程还在跑，但输出 30 秒没变化（卡住） | **间隔翻倍重试一次**，还卡就告知{{{user}}} |
-     | 进程已死，日志无 100% | ❌ 下载失败 → 告知{{{user}}}原因 |
-
-8. **清理**：下载完成后
-   - 从 `downloads.json` 的 active 列表移除该记录
-   - **删除临时 log 文件**：`exec(command="rm -f /tmp/ytdlp-{对应文件名}.log")`
-   - 也清理临时 .part / .ytdl 碎片文件：`exec(command="rm -f {目录}/*.part {目录}/*.part-Frag* {目录}/*.ytdl 2>/dev/null")`
-
-**进度汇报给{{{user}}}**：
-
-在一次性 cron 进度检测的基础上，额外设置一个 **定期兜底 cron** 来确保稳定汇报：
-
-**一次性动态 cron（主检测链）**：
-- 每次检测后根据剩余时间动态设定下次检查间隔（10秒～2分钟）
-- 检测到完成/失败 → 走 Phase 4，**同时取消兜底 cron 和一次性动态 cron**
-
-**定期兜底 cron（保底汇报）**：
-```
-cron action=add
-  name = "video-finder-progress"
-  schedule.kind = "every"
-  schedule.everyMs = 120000    # 固定 2 分钟
-  payload.kind = "systemEvent"
-  payload.text = "video-finder download progress check"
-  sessionTarget = "main"
-```
-- 兜底 cron 每 2 分钟触发一次，读取 `downloads.json` 检查所有活跃下载
-- 如果有下载：读取日志文件 → 解析进度 → **向{{{user}}}汇报当前进度**  
-  ```
-  {{{user}}}，正在下载中～
-  1️⃣ 当前进度：45.3%，速度 12.5 MiB/s，预计还剩 2 分半
-  2️⃣ 文件大小：~450 MB
-  ```
-- 如果全部下载已完成/已消失 → **自动移除该兜底 cron**：`cron action=remove name="video-finder-progress"`
-- 兜底和一次性动态 cron 同时工作，互不冲突
-- **防重复触发**：检测到下载完成/失败时，同时取消一次性动态 cron 和兜底 cron，避免重复汇报
-
-**触发时机总结**：
-
-| 触发者 | 时机 | 汇报内容 |
-|-------|------|---------|
-| 一次性动态cron | 每次检测到进度更新 | 安静，不向{{{user}}}汇报 |
-| 一次性动态cron | 下载完成 ✅ | 文件名、路径、大小，**同时取消兜底 cron** |
-| 一次性动态cron | 下载失败 ❌ | 失败原因，**同时取消兜底 cron** |
-| 兜底 cron（每2分钟） | 有下载活跃时 | 当前进度、速度、预估剩余时间 |
-| 兜底 cron | 全部下载完成 | 自动移除自身 |
-
-**方式 B 回退（无文件日志时）**：
-
-如果下载是用 `process` 工具启动的（没有日志文件），需要通过其他方式跟踪进度：
-
-1. 直接看下载目录文件变化：`exec(command="ls -lh {目录}/*.part 2>/dev/null || ls -lh {目录}/*.mp4")`
-2. 看到 .part 文件在变大 → 还在下
-3. .part 变成 .mp4 且没有新 .part → 下完了
-4. 没有 .part 且 .mp4 文件大小稳定 → 看进程是否还活着
-5. 这种方式只能检查
-
-#### 3.4 其他站点
-
-尝试 yt-dlp 通用格式
-不支持的站点 → 告知用户
-
-#### 3.5 清理
-
-删除临时碎片文件
+委托给 `video_finder_download`：
+1. 确定下载目录（preferences → 自动沿用上次 → 首次询问 → 探测 → 回退）
+2. 代理判断（→ video_finder_proxy）
+3. 启动 yt-dlp（文件跟踪法，支持跨 session）
+4. 定时进度检测（动态 cron + 心跳 cron）
+5. 完成后清理
 
 ### Phase 4: 结果
 
@@ -436,9 +99,6 @@ cron action=add
 → 告知{{{user}}}：文件名、路径、文件大小
 → 追加记录到 history.md
 
-    2026-06-30
-    - [标题](url) — 来源：XVideos，画质：1080p，大小：1.2GB
-
 失败 ❌
 → 告知原因：链接失效 / 画质不足 / 代理 Timeout / 站点被墙
 → 询问是否换源继续
@@ -446,50 +106,10 @@ cron action=add
 
 ### Phase 5: 反馈闭环
 
-**看过之后再问反馈，不一开始就问：**
-
-等{{{user}}}看完片后（隔一段时间或下次提及这部片时），主动询问反馈：
-
-```
-{{{user}}}，上次下的那个片看了吗～觉得怎么样？
-```
-
-**根据反馈提炼信息，更新偏好文件：**
-
-| 用户反馈 | 操作 |
-|---|---|
-| 好看/不错/喜欢 | 提取片中体现的标签和作者，加入 `positive_tags` / `positive_authors` |
-| 不好看/不喜欢 | 提取相关标签和作者，加入 `negative_tags` / `negative_authors`（黑名单） |
-| 还行/一般 | 只记录，不加入任何列表 |
-| 具体指出哪里好/不好 | 提取具体关键词，精准更新 |
-
-**更新到 preferences.json 的新字段：**
-
-```json
-{
-  ...原有字段...,
-  "positive_tags": ["<用户喜欢的标签1>", "<用户喜欢的标签2>"],
-  "positive_authors": ["<用户喜欢的作者/频道1>", "<用户喜欢的作者/频道2>"],
-  "negative_tags": ["<用户不喜欢的标签1>", "<用户不喜欢的标签2>"],
-  "negative_authors": ["<用户不喜欢的作者/频道1>", "<用户不喜欢的作者/频道2>"]
-}
-```
-
-**后续搜索时自动应用：**
-- `positive_tags` → 搜索时优先命中
-- `positive_authors` → 搜索结果中优先展示
-- `negative_tags` → 筛选时排除
-- `negative_authors` → 筛选时排除
-
-**每次反馈记录也追加到 history.md：**
-
-```markdown
-## 2026-06-30
-- [标题](url) — 来源：XVideos，画质：1080p，大小：1.2GB
-  → 反馈：👍 不错，女优身材好（positive_tags: natural tits, euro）
-```
-
----
+委托给 `video_finder_feedback`：
+- 轻量提醒一次（不追问）
+- 根据反馈更新 `tag_weights` / `author_weights` 权重
+- 追加反馈记录到 history.md
 
 ## 🚫 红线
 
@@ -497,20 +117,16 @@ cron action=add
 |---|---|
 | **用户确认后才下载** | 不能替用户决定下载哪个，只能推荐 |
 | 不主动整站翻页搜刮 | 用户给了方向才搜 |
-| 不关注剧情标签 | 默认忽略剧情关键词（可在 preferences.json 配置 `include剧情标签: true` 开启） |
-| 下载目录动态确定 | 先检查 preferences.json → 问用户 → 自动探测 → 都找不到回退到 workspace |
+| 不关注剧情标签 | 默认忽略剧情关键词（可在 preferences.json 配置 `plot_tags: true` 开启） |
+| 下载目录动态确定 | preferences → 自动沿用上次 → 首次询问 → 探测 → 回退到 workspace |
 | proxy.json 保密 | 不在对话/日志中输出密码 |
-| 反馈闭环 | 看完片后主动问反馈，根据反馈维护正/负面标签和作者 |
-
----
+| 反馈闭环 | 看完后提醒一次（不追问），维护 tag_weights 加权标签 |
 
 ## ♻️ 用户随时可干预
 
 ```
-"改下偏好"       → 重新跑 1.1 覆盖 preferences.json
-"换个代理"       → 重新跑 1.2 覆盖 proxy.json
+"改下偏好"       → 委托 video_finder_preferences 覆盖 preferences.json
+"换个代理"       → 委托 video_finder_proxy 覆盖 proxy.json
 "这次不用代理"   → 不加 --proxy，不写文件
 "记得这个代理"   → 写入 proxy.json 持久化
 ```
-
----
