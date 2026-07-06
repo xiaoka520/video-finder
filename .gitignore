@@ -1,15 +1,8 @@
-# 用户运行时数据 — 本地独有，不提交
 preferences.json
 proxy.json
 history.md
-
-# 下载跟踪 — 本地独有
-tracking/
-
-# 默认下载目录
+tracking/download.json
 workspace/
-
-# 临时文件
 *.log
 *.part
 *.part-Frag*
