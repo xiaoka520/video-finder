@@ -12,7 +12,7 @@ description: "下载影片：Layer1 目录确定、Layer2 下载调度、Layer3 
 - **称呼约定**：`{{{user}}}` 为占位符
 - `yt-dlp` 安装在宿主机
 - **依赖**：`video_finder_proxy`（代理判断）
-- **状态文件**：`./tracking/downloads.json`
+- **状态文件**：`./tracking/downloads.json`（首次自动从 `tracking/downloads.example.json` 复制）
 
 ---
 

@@ -36,10 +36,10 @@ author: Lingling && xiaoka520
 - **称呼约定**：`{{{user}}}` 为占位符，实际对话时根据上下文自然称呼
 - `yt-dlp` 安装在宿主机
 - **工作目录**：skill 所在目录（相对路径，所有 JSON/MD 文件都在此目录下）
-- **偏好配置**：`./preferences.json`
-- **代理配置**：`./proxy.json`
-- **下载跟踪**：`./tracking/downloads.json`
-- **记忆文件**：`./history.md`
+- **偏好配置**：`./preferences.json`（首次从 `preferences.example.json` 复制）
+- **代理配置**：`./proxy.json`（首次从 `proxy.example.json` 复制）
+- **下载跟踪**：`./tracking/downloads.json`（首次从 `tracking/downloads.example.json` 复制）
+- **记忆文件**：`./history.md`（首次从 `history.example.md` 复制）
 - **下载目录**：无默认值，由用户指定或自动探测
 - **默认工作空间**：`./workspace`（最终回退目录）
 

@@ -14,10 +14,11 @@ video-finder/
 ├── search.md                         ← Multi-engine search & filtering
 ├── download.md                       ← yt-dlp download + progress tracking
 ├── feedback.md                       ← Post-viewing feedback & tag maintenance
-├── preferences.json                  ← Runtime user preferences
-├── proxy.json                        ← Proxy credentials (⚠️ never echo)
-├── tracking/downloads.json           ← Cross-session download state
-├── history.md                        ← User-facing download/feedback log
+├── preferences.example.json          ← Template for user preferences
+├── proxy.example.json                ← Template for proxy config
+├── history.example.md                ← Template for download history
+├── tracking/downloads.example.json   ← Template for download state
+├── (.gitignore)                      ← Runtime files not committed
 ├── AGENTS.md                         ← This file
 ├── README.md                         ← End-user docs
 └── LICENSE

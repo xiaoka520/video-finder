@@ -18,7 +18,10 @@ description: "管理用户的影片偏好配置。首次使用初始化偏好问
 
 **触发条件**：`preferences.json` 不存在
 
-**操作**：向用户逐一提问
+**操作**：
+
+1. 从模板创建：`cp preferences.example.json preferences.json`
+2. 向用户逐一提问，覆盖模板默认值
 
 ```
 {{{user}}}，这是你第一次用找片功能～我先记一下你的偏好：
