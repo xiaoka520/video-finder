@@ -77,9 +77,7 @@ description: "观影后反馈闭环：提醒用户给反馈（非强制）、根
 每次搜索会话结束（或反馈处理完），先执行被动增益，再全局衰减：
 
 ```
-# 被动增益（由 search.md 产出）
-for tag in 本次搜索命中标签:
-  tag_weights[tag] += 1
+# 被动增益（已由 search.md Layer 3 Step 5 执行，此处仅做全局衰减）
 
 # 全局衰减
 for tag in tag_weights:

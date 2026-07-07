@@ -51,7 +51,7 @@ description: "管理用户的影片偏好配置。首次使用初始化偏好问
 }
 ```
 
-**同时**：创建 `history.json`，写入初始表头。
+**同时**：从 `history.example.json` 复制创建 `history.json`。
 
 ### 后续使用
 

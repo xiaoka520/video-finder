@@ -149,7 +149,10 @@ Q4（泛）:  blonde nurse amateur medical cosplay roleplay homemade real couple
 
 ### 并行策略
 
-启动 **N 个 subagent** 同时搜索，N = 参与引擎数（默认 5 个，站内搜索动态增减）。
+启动 **N 个 subagent** 同时搜索：
+- N = 4 个通用引擎（Google、DuckDuckGo、Bing、Yandex）+ M 个站内引擎
+- M = `preferred_sites` 数量（每个站点一个站内搜索 subagent）
+- `preferred_sites` 为空时 M = 0，仅用通用引擎
 
 ```
                     ┌─ subagent: Google ────── 用 Q1-Q4 搜，返回结果列表
@@ -165,7 +168,7 @@ Layer 1 产出的 ─────┼─ subagent: DuckDuckGo ─── 用 Q1-Q4
 
 - **全部同时启动**，不等待彼此
 - 每个 subagent 收到完整上下文（全部查询变体 + 偏好数据 + 代理配置）
-- 设置总超时 = 30s，超时的 subagent 结果丢弃
+- 设置总超时 = 60s，超时的 subagent 结果丢弃
 
 ### 各引擎 subagent 任务模板
 

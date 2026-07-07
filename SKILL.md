@@ -65,6 +65,7 @@ author: Lingling && xiaoka520
 收到请求
 ├─ 检查 preferences.json（首次→委托 video_finder_preferences 初始化）
 ├─ 检查 proxy.json（首次→跳过，不通时委托 video_finder_proxy 初始化）
+├─ 检查 history.json（缺失→从 history.example.json 复制）
 │
 ├─ 用户给关键词 → 走 Phase 2 搜索
 ├─ 用户给链接 → 走 Phase 3 下载
