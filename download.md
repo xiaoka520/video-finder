@@ -30,7 +30,7 @@ resolve_dir():
 
   # 2. 非首次下载 → 自动沿用上次目录，不询问
   last_dir = tracking/downloads.json 最后一条 completed 的 output_dir
-            ?? history.md 最后一条记录的目录
+            ?? history.json 最后一条记录的目录
   if last_dir && [ -d "$last_dir" ]:
     return last_dir
 

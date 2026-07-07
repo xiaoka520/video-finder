@@ -1,10 +1,11 @@
 preferences.json
 proxy.json
-history.md
-tracking/download.json
+history.json
+tracking/downloads.json
 workspace/
 *.log
 *.part
 *.part-Frag*
 *.ytdl
 *.tmp
+.vscode

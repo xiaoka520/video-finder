@@ -39,7 +39,7 @@ author: Lingling && xiaoka520
 - **偏好配置**：`./preferences.json`（首次从 `preferences.example.json` 复制）
 - **代理配置**：`./proxy.json`（首次从 `proxy.example.json` 复制）
 - **下载跟踪**：`./tracking/downloads.json`（首次从 `tracking/downloads.example.json` 复制）
-- **记忆文件**：`./history.md`（首次从 `history.example.md` 复制）
+- **记忆文件**：`./history.json`（首次从 `history.example.json` 复制）
 - **下载目录**：无默认值，由用户指定或自动探测
 - **默认工作空间**：`./workspace`（最终回退目录）
 
@@ -97,7 +97,7 @@ author: Lingling && xiaoka520
 ```
 成功 ✅
 → 告知{{{user}}}：文件名、路径、文件大小
-→ 追加记录到 history.md
+→ 追加记录到 history.json
 
 失败 ❌
 → 告知原因：链接失效 / 画质不足 / 代理 Timeout / 站点被墙
@@ -109,7 +109,7 @@ author: Lingling && xiaoka520
 委托给 `video_finder_feedback`：
 - 轻量提醒一次（不追问）
 - 根据反馈更新 `tag_weights` / `author_weights` 权重
-- 追加反馈记录到 history.md
+- 追加反馈记录到 history.json
 
 ## 🚫 红线
 

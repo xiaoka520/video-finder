@@ -16,7 +16,7 @@ video-finder/
 ├── feedback.md                       ← Post-viewing feedback & tag maintenance
 ├── preferences.example.json          ← Template for user preferences
 ├── proxy.example.json                ← Template for proxy config
-├── history.example.md                ← Template for download history
+├── history.example.json                ← Template for download history
 ├── tracking/downloads.example.json   ← Template for download state
 ├── (.gitignore)                      ← Runtime files not committed
 ├── AGENTS.md                         ← This file

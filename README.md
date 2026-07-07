@@ -50,7 +50,7 @@ Bot: 存哪个目录？
 ├── .gitignore
 ├── preferences.json   ← 你的口味设定（自动生成）
 ├── proxy.json         ← 代理设置（自动生成）
-└── history.md         ← 浏览记录（自动生成）
+└── history.json         ← 浏览记录（自动生成）
 ```
 
 ## 下载流程

@@ -11,7 +11,7 @@ description: "观影后反馈闭环：提醒用户给反馈（非强制）、根
 
 - **称呼约定**：`{{{user}}}` 为占位符
 - **依赖**：`video_finder_preferences`（读写 `preferences.json`）
-- **历史文件**：`./history.md`
+- **历史文件**：`./history.json`
 
 ## 触发时机
 
@@ -115,11 +115,28 @@ for tag in tag_weights:
 
 > `exclude_tags` 保留为硬排除列表，不受权重影响。`negative_tags` / `positive_tags` 废弃，合并到 `tag_weights`。
 
-## history.md 记录格式
+## history.json 记录格式
 
-```markdown
-## 2026-07-06
-- [Passionate sex of real amateur couple](url) — XVideos，1080p，445MB
-  → 反馈：👍 不错，女优身材好（tag_weights: natural tits +2 → 10, euro +2 → 9, amateur +1 → 13）
+```json
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "date": "2026-07-06",
+      "downloads": [
+        {
+          "title": "Passionate sex of real amateur couple",
+          "url": "https://example.com/video-001",
+          "resolution": "1080p",
+          "size": "445MB",
+          "status": "success"
+        }
+      ],
+      "feedback": [
+        "👍 不错，女优身材好（tag_weights: natural tits +2 → 10, euro +2 → 9, amateur +1 → 13）"
+      ]
+    }
+  ]
+}
 ```
 
